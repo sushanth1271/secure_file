@@ -53,7 +53,12 @@ secure_file/
    ```
 
    *(Requirements: Flask, pycryptodome, Werkzeug)*
-
+    ## Requirements include:
+    * Flask==2.2.5
+    * pycryptodome==3.20.0
+    * cryptography>=42.0.0
+    * Werkzeug
+    * Jinja2==3.1.2
 ## Running the Project
 
 1. Start the Flask server:
@@ -99,12 +104,14 @@ secure_file/
 * The system clears old files when new files are uploaded to prevent clutter.
 * AES encryption is used for fast file encryption; RSA encrypts the AES session key securely.
 
+
 ## Dependencies
 
 * Python 3.8+
 * Flask
 * pycryptodome
 * Werkzeug
+
 
 ## Credits
 
