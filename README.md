@@ -53,12 +53,13 @@ secure_file/
    ```
 
    *(Requirements: Flask, pycryptodome, Werkzeug)*
-    ## Requirements include:
+## Requirements include:
     * Flask==2.2.5
     * pycryptodome==3.20.0
     * cryptography>=42.0.0
     * Werkzeug
     * Jinja2==3.1.2
+
 ## Running the Project
 
 1. Start the Flask server:
