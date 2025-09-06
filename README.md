@@ -15,7 +15,7 @@ This project is a secure file storage system built using **Flask** and **Python*
 ## Folder Structure
 
 ```
-Secure_File_Storage/
+secure_file/
 │
 ├── app.py                # Main Flask application
 ├── tools.py              # Helper functions (empty_folder, list_dir)
@@ -35,7 +35,7 @@ Secure_File_Storage/
 2. **Navigate to project directory:**
 
    ```bash
-   cd Secure_File_Storage
+   cd secure_file
    ```
 3. **Create virtual environment (optional but recommended):**
 
