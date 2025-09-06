@@ -1,39 +1,117 @@
-# Secure-File-Storage-Using-Hybrid-Cryptography
+# Secure File Storage Using Hybrid Cryptography
 
-## Objective: To Achieve a secure plateform for storing of files on Cloud using Hybrid Cryptography.</br>
+## Project Overview
 
-# Methodology
+This project is a secure file storage system built using **Flask** and **Python**, employing **hybrid cryptography** (RSA + AES) to encrypt and decrypt files. Users can upload files, encrypt them, download their private key, and decrypt files securely.
 
-To achieve the above goal, the following methodology needs to be followed:</br>
-1. Load the file on the server.</br>
-2. Dividing the uploaded file into N parts.</br>
-3. Encrypting all the parts of the file using any one of the selected algorithms (Algorithm is changed with every part in round robin fashion).</br>
-4. The keys for cryptography algorithms is then secured using a different algorithm and the key for this algorithm is provided to the user as public key.</br>
+## Features
 
-After the above 4 steps you will have a N files which are in encrypted form which are stored on the server and a key which is downloaded as public key for decrypting the file and downloading it.</br>
+* Upload files and encrypt them using AES + RSA hybrid encryption.
+* Download private key for decryption.
+* Upload private key to decrypt files.
+* Automatic cleanup of old files when new files are uploaded.
+* Dashboard interface to manage all operations.
 
-To restore the file, follow the following steps:</br>
-1. Load the key on the server.</br>
-2. Decrypt the keys of the algorithms.</br>
-3. Decrypt all the N parts of the file using the same algorithms which were used to encrypt them.</br>
-4. Combine all the N parts to form the original file and provide it to the user for downloading.</br>
+## Folder Structure
 
-# How to Run
+```
+Secure_File_Storage/
+│
+├── app.py                # Main Flask application
+├── tools.py              # Helper functions (empty_folder, list_dir)
+├── templates/            # HTML templates
+│   ├── index.html        # Landing page
+│   └── download.html     # Dashboard page
+├── uploads/              # Temporary folder for uploaded files
+├── key/                  # Folder to store private keys
+├── encrypted/            # Folder to store encrypted files
+├── restored_file/        # Folder to store decrypted files
+└── README.md             # Project documentation
+```
 
-**NOTE:** The project is based on Python 2.7.15 plateform running it on any other plateform might create some issues.</br>
+## Installation
 
-Step 1: Install Requirements</br>
-`pip install -r requirements.txt`</br>
+1. **Clone the repository** (or extract provided zip file).
+2. **Navigate to project directory:**
 
-Step 2: Run the application</br>
-`python app.py`</br>
+   ```bash
+   cd Secure_File_Storage
+   ```
+3. **Create virtual environment (optional but recommended):**
 
-Step 3: Visit the localhost from your browser</br>
+   ```bash
+   python -m venv .venv
+   ```
+4. **Activate virtual environment:**
 
-Step 4: Enjoy :)
- 
-[//]: <> (*IF YOU ENCOUNTER ANY BUGS OR FOR ANY SUGGESTIONS REGARDING THE IMPROVEMENT OF THE PROJECT FEEL FREE TO CONTACT ME :**)
+   * Windows: `.\.venv\Scripts\activate`
+   * Linux/Mac: `source .venv/bin/activate`
+5. **Install dependencies:**
 
-**THE PROJECT HAS ENCOUNTERED A BUG BECAUSE OF THE CRYPTOGRAPHY LIBRARY BEING UPDATED. IF YOU ARE INTRESTED IN COLLABORATING TO IMPROVE THIS PROJECT FEEL FREE TO CONTACT ME :**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-sagar R S	-	sagarrs2001@gmail.com<br/>
+   *(Requirements: Flask, pycryptodome, Werkzeug)*
+
+## Running the Project
+
+1. Start the Flask server:
+
+   ```bash
+   python app.py
+   ```
+2. Open browser and navigate to:
+
+   ```
+   http://127.0.0.1:8000
+   ```
+
+## Usage
+
+1. **Landing Page:**
+
+   * Click **Go to Dashboard** to access the main file management interface.
+
+2. **Step 1: Upload & Encrypt**
+
+   * Upload a file you want to encrypt.
+   * The system automatically clears old files in `uploads/`, `encrypted/`, and `restored_file/`.
+   * Click **Upload & Encrypt**.
+
+3. **Step 2: Download Private Key**
+
+   * After encryption, download the private key `.pem` file.
+   * Keep it safe; it is required for decryption.
+
+4. **Step 3: Upload Key & Decrypt**
+
+   * Upload your private key file.
+   * Click **Upload Key & Decrypt**.
+
+5. **Step 4: Download Restored File**
+
+   * Once decrypted, click **Download Restored File**.
+
+## Notes
+
+* Ensure to keep your private key safe; losing it means you cannot decrypt your files.
+* The system clears old files when new files are uploaded to prevent clutter.
+* AES encryption is used for fast file encryption; RSA encrypts the AES session key securely.
+
+## Dependencies
+
+* Python 3.8+
+* Flask
+* pycryptodome
+* Werkzeug
+
+## Credits
+
+* Project developed by **Sagar R S**
+* MCA, Dept of CS\&E
+* USN: 4VZ23MC094
+
+## License
+
+* This project is for educational purposes and personal use.
