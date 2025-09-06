@@ -1,32 +1,53 @@
+# restore.py
+
 import os
 import tools
 
+FILES_DIR = 'files'
+RAW_DATA_DIR = 'raw_data'
+RESTORED_DIR = 'restored_file'
+
 def restore():
-    tools.empty_folder('restored_file')
+    # Clear restored_file folder before starting
+    tools.empty_folder(RESTORED_DIR)
 
-    # Initialize a default filename
+    # Default restored filename fallback
     default_filename = "restored_output.txt"
-    meta_info = []
+    meta_file_path = os.path.join(RAW_DATA_DIR, 'meta_data.txt')
 
-    try:
-        with open('raw_data/meta_data.txt', 'r') as meta_data:
-            for row in meta_data:
-                temp = row.strip().split('=')
-                if len(temp) > 1:
-                    meta_info.append(temp[1])
-    except FileNotFoundError:
-        meta_info.append(default_filename)
+    # Read metadata: get original filename and chapter count
+    filename = default_filename
+    chapters = None
 
-    # Use the filename from meta_data.txt or fallback
-    filename = meta_info[0] if meta_info and meta_info[0] else default_filename
-    address = os.path.join('restored_file', filename)
+    if os.path.exists(meta_file_path):
+        with open(meta_file_path, 'r') as meta_file:
+            for line in meta_file:
+                line = line.strip()
+                if line.startswith("File_Name="):
+                    filename = line.split('=', 1)[1]
+                elif line.startswith("chapters="):
+                    try:
+                        chapters = int(line.split('=', 1)[1])
+                    except ValueError:
+                        chapters = None
 
-    list_of_files = sorted(tools.list_dir('files'))
+    output_path = os.path.join(RESTORED_DIR, filename)
+    os.makedirs(RESTORED_DIR, exist_ok=True)
 
-    with open(address, 'wb') as writer:
-        for file in list_of_files:
-            path = os.path.join('files', file)
-            with open(path, 'rb') as reader:
+    # List all files in files dir, sorted
+    file_chunks = tools.list_dir(FILES_DIR)
+    file_chunks.sort()
+
+    with open(output_path, 'wb') as writer:
+        for chunk in file_chunks:
+            chunk_path = os.path.join(FILES_DIR, chunk)
+            with open(chunk_path, 'rb') as reader:
                 writer.write(reader.read())
 
-    tools.empty_folder('files')
+    # Clean up chunk files after merge
+    tools.empty_folder(FILES_DIR)
+
+    print(f"✅ Restored file saved as '{output_path}'")
+
+if __name__ == "__main__":
+    restore()

@@ -1,13 +1,116 @@
+<!DOCTYPE html>
 <html>
-	<body>
-		<center>
-			<h1> Secure File Storage Using Hybrid Cryptography </h1><br><br>
-			<form action = "/download_data" method = "POST" enctype = "multipart/form-data">
-				<input type = "file" name = "file" required/>
-				<br><br><input type = "Submit"/>
-			</form>
-			<br><h4>A Project by:</h4>
-			<h5>Sagar R S <br>MCA (Dept of.CS&E)<br>USN- 4VZ23MC094</h5>
-		</center>
-	</body>
+  <head>
+    <title>Secure File Storage Dashboard</title>
+    <style>
+      body { font-family: Arial, sans-serif; background: #f4f4f9; }
+      .container { width: 60%; margin: auto; text-align: center; padding: 20px; }
+      h1 { color: #333; }
+      .card {
+        background: #fff;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      }
+      button {
+        padding: 10px 20px;
+        margin: 10px;
+        border: none;
+        border-radius: 5px;
+        background: #007bff;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      button:hover { background: #0056b3; }
+      .msg { font-size: 18px; color: green; margin: 15px; }
+      .file-list { margin-top: 10px; text-align: left; }
+      .file-list li { padding: 5px 0; }
+      a { text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔐 Secure File Storage Dashboard</h1>
+
+      {% if message %}
+        <p class="msg">{{ message }}</p>
+      {% endif %}
+
+      <!-- Step 1: Upload & Encrypt -->
+      <div class="card" id="step1">
+        <h2>Step 1: Upload & Encrypt</h2>
+        <form action="/data" method="POST" enctype="multipart/form-data">
+          <input type="file" name="file" required/>
+          <br><br>
+          <button type="submit">Upload & Encrypt</button>
+        </form>
+        {% if uploaded_files %}
+          <div class="file-list">
+            <strong>Uploaded File:</strong>
+            <ul>
+              {% for f in uploaded_files %}
+                <li>{{ f }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Step 2: Download Private Key -->
+      {% if key_filename %}
+      <div class="card" id="step2">
+        <h2>Step 2: Download Your Private Key</h2>
+        <a href="/return-key/{{ key_filename }}" target="_blank">
+          <button>Download Key</button>
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Step 3: Upload Key & Decrypt -->
+      <div class="card" id="step3">
+        <h2>Step 3: Upload Key & Decrypt</h2>
+        <form action="/download_data" method="POST" enctype="multipart/form-data">
+          <input type="file" name="file" required/>
+          <br><br>
+          <button type="submit">Upload Key & Decrypt</button>
+        </form>
+      </div>
+
+      <!-- Step 4: Download Restored File -->
+      {% if restored_filename %}
+      <div class="card" id="step4">
+        <h2>Step 4: Download Restored File</h2>
+        <a href="/return-file/" target="_blank">
+          <button>Download Restored File</button>
+        </a>
+        <div class="file-list">
+          <strong>Restored File:</strong>
+          <ul>
+            <li>{{ restored_filename }}</li>
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
+      <br>
+      <h4>A Project by:</h4>
+      <h5>Sagar R S <br>MCA (Dept of CS&E)<br>USN- 4VZ23MC094</h5>
+    </div>
+
+    <!-- Auto-scroll -->
+    <script>
+      window.onload = function() {
+        const msg = "{{ message|default('') }}";
+        if (msg.includes("encrypted")) {
+          const step2 = document.getElementById("step2");
+          if (step2) step2.scrollIntoView({behavior: "smooth"});
+        } else if (msg.includes("decrypted")) {
+          const step4 = document.getElementById("step4");
+          if (step4) step4.scrollIntoView({behavior: "smooth"});
+        }
+      }
+    </script>
+  </body>
 </html>

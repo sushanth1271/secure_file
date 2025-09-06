@@ -1,130 +1,88 @@
+# decrypter.py
+
 import os
-import base64
-import tools
-from cryptography.fernet import Fernet, MultiFernet, InvalidToken
-from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305, AESGCM, AESCCM
+import json
+import hashlib
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization, hashes
 
-def save_decrypted_output(filename, decrypted_data):
-    output_path = os.path.join("restored_file", filename)
-    with open(output_path, 'wb') as out:
-        out.write(decrypted_data)
-    print(f"[✔] Decrypted '{filename}' → saved to restored_file/ ({len(decrypted_data)} bytes)")
+PACKAGE_DIR = "packages"
+RESTORE_DIR = "restored_file"
+KEY_DIR = "key"
 
-def Algo1_decrypt(data, key):
-    try:
-        f = Fernet(key)
-        return f.decrypt(data).decode()
-    except InvalidToken:
-        raise ValueError("❌ Failed to decrypt metadata — Fernet key may be incorrect or corrupted.")
+def load_rsa_private(path="key/private.pem", password=None):
+    """
+    Loads an RSA private key from the given PEM file.
+    """
+    with open(path, "rb") as f:
+        return serialization.load_pem_private_key(f.read(), password=password)
 
-def Algo1_extended_decrypt(filename, key1, key2):
-    try:
-        f = MultiFernet([Fernet(key1), Fernet(key2)])
-        with open(f'raw_data/{filename}', 'rb') as file:
-            encrypted_data = file.read()
-        decrypted_data = f.decrypt(encrypted_data)
-        save_decrypted_output(filename, decrypted_data)
-    except InvalidToken:
-        raise ValueError(f"❌ Failed to decrypt file {filename} using MultiFernet.")
+def numeric_sorted_parts(folder, prefix="part_", suffix=".bin"):
+    """
+    Returns a sorted list of chunk filenames matching the part_* pattern.
+    """
+    parts = [f for f in os.listdir(folder) if f.startswith(prefix) and f.endswith(suffix)]
+    parts.sort(key=lambda x: int(x[len(prefix):-len(suffix)]))
+    return parts
 
-def Algo2_decrypt(filename, key, nonce):
-    chacha = ChaCha20Poly1305(key)
-    aad = b"authenticated but unencrypted data"
-    with open(f'raw_data/{filename}', 'rb') as file:
-        encrypted_data = file.read()
-    decrypted_data = chacha.decrypt(nonce, encrypted_data, aad)
-    save_decrypted_output(filename, decrypted_data)
+def decrypt_package(package_name, private_key_path="key/private.pem"):
+    """
+    Decrypts a package folder produced by encrypter.py.
+    - package_name: the name of the package folder (not full path, just folder name)
+    - private_key_path: location of the PEM private key
+    Returns the path to the restored file.
+    """
+    package_path = os.path.join(PACKAGE_DIR, package_name)
+    meta_path = os.path.join(package_path, "metadata.json")
+    if not os.path.exists(meta_path):
+        raise FileNotFoundError("No metadata.json found in: " + package_path)
 
-def Algo3_decrypt(filename, key, nonce):
-    aesgcm = AESGCM(key)
-    aad = b"authenticated but unencrypted data"
-    with open(f'raw_data/{filename}', 'rb') as file:
-        encrypted_data = file.read()
-    decrypted_data = aesgcm.decrypt(nonce, encrypted_data, aad)
-    save_decrypted_output(filename, decrypted_data)
+    with open(meta_path, "r") as f:
+        meta = json.load(f)
 
-def Algo4_decrypt(filename, key, nonce):
-    aesccm = AESCCM(key)
-    aad = b"authenticated but unencrypted data"
-    with open(f'raw_data/{filename}', 'rb') as file:
-        encrypted_data = file.read()
-    decrypted_data = aesccm.decrypt(nonce, encrypted_data, aad)
-    save_decrypted_output(filename, decrypted_data)
-
-def parse_metadata(meta_text):
-    meta = {}
-    for line in meta_text.strip().splitlines():
-        if '=' in line:
-            key, value = line.strip().split('=', 1)
-            meta[key.strip()] = value.strip()
-    return meta
-
-def decrypter():
-    print("[*] Cleaning 'restored_file' directory...")
-    tools.empty_folder('restored_file')
-
-    print("[*] Loading master key from 'key/My_Key.pem'...")
-    with open("key/My_Key.pem", "rb") as key_file:
-        master_key = key_file.read().strip()
-        if len(master_key) != 44:
-            raise ValueError("❌ Master key must be a valid 32-byte base64-encoded Fernet key (44 characters).")
-
-    print("[*] Decrypting metadata from 'raw_data/store_in_me.enc'...")
-    with open("raw_data/store_in_me.enc", "rb") as enc_meta:
-        decrypted_meta_text = Algo1_decrypt(enc_meta.read(), master_key)
-
-    metadata = parse_metadata(decrypted_meta_text)
-
-    try:
-        key1 = base64.b64decode(metadata["FernetKey1"])
-        key2 = base64.b64decode(metadata["FernetKey2"])
-        key3 = base64.b64decode(metadata["ChaChaKey"])
-        key4 = base64.b64decode(metadata["AESKey"])
-        key5 = base64.b64decode(metadata["AESCCMKey"])
-        nonce12 = base64.b64decode(metadata["Nonce12"])
-        nonce13 = base64.b64decode(metadata["Nonce13"])
-    except KeyError as e:
-        raise ValueError(f"❌ Missing key in metadata: {e}")
-    except Exception as e:
-        raise ValueError(f"❌ Error decoding keys from metadata: {e}")
-
-    # Collect files to decrypt
-    files = sorted([
-        f for f in tools.list_dir('raw_data')
-        if f != 'store_in_me.enc' and f.startswith("SECRET")
-    ])
-
-    print(f"[*] Found {len(files)} encrypted file(s) to decrypt.")
-    for index, filename in enumerate(files):
-        try:
-            print(f"\n[+] Decrypting file [{index+1}/{len(files)}]: {filename}")
-            if index % 4 == 0:
-                Algo1_extended_decrypt(filename, key1, key2)
-            elif index % 4 == 1:
-                Algo2_decrypt(filename, key3, nonce12)
-            elif index % 4 == 2:
-                Algo3_decrypt(filename, key4, nonce12)
-            else:
-                Algo4_decrypt(filename, key5, nonce13)
-        except Exception as e:
-            print(f"❌ Error decrypting {filename}: {e}")
-
-    print("\n✅ All decryption completed.")
-    print("📁 Files successfully written to 'restored_file':")
-    for f in os.listdir('restored_file'):
-        path = os.path.join('restored_file', f)
-        print(f" - {f} ({os.path.getsize(path)} bytes)")
-
-    # 🔄 Merge all SECRET chunks into final file
-    restored_files = sorted(
-        [f for f in os.listdir('restored_file') if f.startswith('SECRET')],
-        key=lambda x: int(x.replace("SECRET", ""))
+    priv_key = load_rsa_private(private_key_path)
+    aes_key = priv_key.decrypt(
+        bytes.fromhex(meta["rsa_encrypted_key_hex"]),
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
     )
 
-    output_path = os.path.join("restored_file", "restored_output.txt")
-    with open(output_path, 'wb') as out_file:
-        for fname in restored_files:
-            with open(os.path.join("restored_file", fname), 'rb') as part_file:
-                out_file.write(part_file.read())
+    aesgcm = AESGCM(aes_key)
+    parts = numeric_sorted_parts(package_path)
+    nonces = meta["nonces_hex"]
+    sha = hashlib.sha256()
 
-    print(f"[+] Merged {len(restored_files)} chunks into 'restored_output.txt'")
+    os.makedirs(RESTORE_DIR, exist_ok=True)
+    restored_path = os.path.join(RESTORE_DIR, meta["original_name"])
+
+    with open(restored_path, "wb") as out:
+        for fname, nonce_hex in zip(parts, nonces):
+            part_path = os.path.join(package_path, fname)
+            nonce = bytes.fromhex(nonce_hex)
+            with open(part_path, "rb") as f:
+                ct = f.read()
+            pt = aesgcm.decrypt(nonce, ct, None)
+            sha.update(pt)
+            out.write(pt)
+
+    # Integrity check
+    if sha.hexdigest() != meta["original_sha256"]:
+        print("⚠️ Integrity check failed! Restored file hash does not match original.")
+    else:
+        print("✅ File restored and verified:", restored_path)
+    return restored_path
+
+if __name__ == "__main__":
+    # CLI usage: python decrypter.py <package_folder> [private_key_path]
+    import sys
+    if len(sys.argv) < 2:
+        print("Usage: python decrypter.py <package_folder> [private_key_path]")
+        sys.exit(1)
+    package_folder = sys.argv[1]
+    key_path = sys.argv[2] if len(sys.argv) == 3 else "key/private.pem"
+    outpath = decrypt_package(package_folder, private_key_path=key_path)
+    print("Restored file:", outpath)
