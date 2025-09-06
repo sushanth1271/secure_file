@@ -1,45 +1,33 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Secure File Storage</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #f4f4f9;
-        text-align: center;
-        padding: 50px;
-      }
-      h1 { color: #333; margin-bottom: 30px; }
-      .card {
-        background: #fff;
-        padding: 30px;
-        margin: auto;
-        width: 50%;
-        border-radius: 12px;
-        box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      }
-      button {
-        padding: 12px 25px;
-        border: none;
-        border-radius: 6px;
-        background: #007bff;
-        color: white;
-        font-size: 18px;
-        cursor: pointer;
-        margin-top: 20px;
-      }
-      button:hover { background: #0056b3; }
-      h4, h5 { color: #555; margin-top: 20px; }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h1>🔐 Secure File Storage Using Hybrid Cryptography</h1>
-      <a href="/download">
-        <button>Go to Dashboard</button>
-      </a>
-      <h4>A Project by:</h4>
-      <h5>Sagar R S <br>MCA (Dept of CS&E)<br>USN- 4VZ23MC094</h5>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Secure File Storage</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gradient-to-r from-purple-400 via-pink-300 to-yellow-200 min-h-screen flex flex-col justify-center items-center p-6">
+
+
+  <div class="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-lg text-center hover:scale-105 transform transition duration-300">
+    <h1 class="text-4xl font-bold text-gray-800 mb-6">🔐 Secure File Storage</h1>
+    <p class="text-gray-700 mb-8">Hybrid Encryption with AES & RSA<br>Encrypt, Decrypt & Safely Store Files</p>
+
+    <a href="/download">
+      <button class="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-xl shadow-lg hover:bg-indigo-700 hover:scale-105 transform transition duration-300 flex items-center gap-2 justify-center mx-auto">
+        <i data-feather="lock"></i> Go to Dashboard
+      </button>
+    </a>
+
+    <div class="mt-10 text-gray-700">
+      <h4 class="font-semibold">Project by:</h4>
+      <p>Sagar R S<br>MCA (Dept of CS&E)<br>USN- 4VZ23MC094</p>
     </div>
-  </body>
+  </div>
+
+  <!-- Feather Icons -->
+  <script>
+    feather.replace()
+  </script>
+</body>
 </html>
